@@ -51,7 +51,6 @@ public class ImportarArquivoService {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
             while ((linha = reader.readLine()) != null) {
-                log.
                 builder.append(linha);
             }
         } catch (IOException e) {
