@@ -1,1 +1,18 @@
+logging:
+  file: /logs/importador.log
 
+spring:
+  datasource:
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://localhost;databaseName=rio_card;sendTimeAsDateTime=false
+    username: sa
+    password: Trixrio@
+    mvc:
+      locale-resolver: fixed
+      locale: pt_BR
+  jpa:
+    database: default
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update

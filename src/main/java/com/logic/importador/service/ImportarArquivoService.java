@@ -1,15 +1,29 @@
 package com.logic.importador.service;
 
+import com.logic.importador.domain.GuiasPassageiros;
+import com.logic.importador.repository.GuiasPassageirosRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
+@Service
 public class ImportarArquivoService {
 
-    public static void main(String[] args) {
+    static final String TIME_ZONE = "America/Sao_Paulo";
+
+    @Autowired
+    GuiasPassageirosRepository guiasPassageirosRepository;
+
+
+    @Scheduled(cron = "0 0/5 22,23 * * ?", zone = TIME_ZONE)
+    public void init() {
         // Altere essas variáveis segundo as suas necessidades
         final String urlDiretorioOrigem = "C:\\Documentos logic\\arquivos_brt\\UD_20200214";
         final String urlArquivoDestino = "C:\\Documentos logic\\arquivos_brt\\UD_20200214\\destino.txt";
@@ -33,8 +47,11 @@ public class ImportarArquivoService {
                     continue;
                 }
 
-                String conteudo = lerArquivo(arquivo);
-                escreverArquivo(conteudo, arquivoDestino);
+                //String conteudo = lerArquivo(arquivo);
+                //escreverArquivo(conteudo, arquivoDestino);
+
+                List<String> linhas = linhasPorArquivo(arquivo);
+                linhas.forEach(linha -> guiasPassageirosRepository.save(gerarRegistro(linha)));
             }
 
             System.out.println("Tudo pronto.");
@@ -45,7 +62,14 @@ public class ImportarArquivoService {
         }
     }
 
-    private static String lerArquivo(File arquivo) {
+    static GuiasPassageiros gerarRegistro(String linha) {
+        return GuiasPassageiros
+                .builder()
+                .versao(Long.parseLong(linha.substring(3, 5)))
+                .build();
+    }
+
+    static String lerArquivo(File arquivo) {
         StringBuilder builder = new StringBuilder();
         String linha;
 
@@ -60,7 +84,24 @@ public class ImportarArquivoService {
         return builder.toString();
     }
 
-    private static void escreverArquivo(String conteudo, File arquivo) {
+    static List<String> linhasPorArquivo(File arquivo) {
+        List<String> linhas = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
+            String s = reader.readLine();
+            while (s != null){
+                linhas.add(s);
+                s = reader.readLine();
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return linhas;
+    }
+
+    static void escreverArquivo(String conteudo, File arquivo) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo, true))) {
             writer.write(conteudo);
             writer.newLine();
