@@ -4,6 +4,7 @@ import com.logic.importador.domain.GuiasPassageiros;
 import com.logic.importador.repository.GuiasPassageirosRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@EnableScheduling
 public class ImportarArquivoService {
 
     static final String TIME_ZONE = "America/Sao_Paulo";
@@ -22,7 +24,8 @@ public class ImportarArquivoService {
     GuiasPassageirosRepository guiasPassageirosRepository;
 
 
-    @Scheduled(cron = "0 0/5 22,23 * * ?", zone = TIME_ZONE)
+    //@Scheduled(cron = "0 0/5 22,23 * * ?", zone = TIME_ZONE)
+    @Scheduled(cron = "00 40 22 * * *", zone = TIME_ZONE)
     public void init() {
         // Altere essas variáveis segundo as suas necessidades
         final String urlDiretorioOrigem = "C:\\Documentos logic\\arquivos_brt\\UD_20200214";
@@ -51,7 +54,10 @@ public class ImportarArquivoService {
                 //escreverArquivo(conteudo, arquivoDestino);
 
                 List<String> linhas = linhasPorArquivo(arquivo);
-                linhas.forEach(linha -> guiasPassageirosRepository.save(gerarRegistro(linha)));
+                linhas.forEach(linha -> {
+                    GuiasPassageiros guiasPassageiros = gerarRegistro(linha);
+                    guiasPassageirosRepository.save(guiasPassageiros);
+                });
             }
 
             System.out.println("Tudo pronto.");
@@ -63,9 +69,10 @@ public class ImportarArquivoService {
     }
 
     static GuiasPassageiros gerarRegistro(String linha) {
+        String l = linha.substring(3, 6);
         return GuiasPassageiros
                 .builder()
-                .versao(Long.parseLong(linha.substring(3, 5)))
+                .versao(Long.parseLong(l))
                 .build();
     }
 
